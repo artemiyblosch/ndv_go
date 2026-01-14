@@ -10,13 +10,13 @@ import (
 	"strings"
 )
 
-type Polytope[T Number] struct {
-	Structure  Structure[T]
+type Polytope struct {
+	Structure  Structure
 	Colors     []color.NRGBA
 	FaceColors []color.NRGBA
 }
 
-func (p Polytope[T]) String() string {
+func (p Polytope) String() string {
 	representation := "0:\n"
 
 	for _, v := range p.Structure.Verticies {
@@ -30,43 +30,43 @@ func (p Polytope[T]) String() string {
 	return representation
 }
 
-func (p Polytope[T]) Rotate(plane [2]int, angle float64, around Point[T]) Polytope[T] {
+func (p Polytope) Rotate(plane [2]int, angle float64, around Point) Polytope {
 	return p.VertexMap(RotateFunc(plane, angle, around))
 }
 
-func (p Polytope[T]) Translate(direction Point[T]) Polytope[T] {
+func (p Polytope) Translate(direction Point) Polytope {
 	return p.VertexMap(TranslateFunc(direction))
 }
 
-func (p Polytope[T]) Scale(scale T) Polytope[T] {
+func (p Polytope) Scale(scale float64) Polytope {
 	return p.VertexMap(ScaleFunc(scale))
 }
-func (p Polytope[T]) Upcast(dim int) Polytope[T] {
-	return p.VertexMap(Upcast[T](dim))
+func (p Polytope) Upcast(dim int) Polytope {
+	return p.VertexMap(Upcast(dim))
 }
 
-func (p Polytope[T]) VertexMap(f Projection[T]) Polytope[T] {
+func (p Polytope) VertexMap(f Projection) Polytope {
 	for i, v := range p.Structure.Verticies {
 		p.Structure.Verticies[i] = f(v)
 	}
 	return p
 }
 
-func (p Polytope[T]) Center() Point[T] {
-	center := make(Point[T], len(p.Structure.Verticies[0]))
+func (p Polytope) Center() Point {
+	center := make(Point, len(p.Structure.Verticies[0]))
 	for i, c_coord := range center {
 		for _, p_coord := range p.Structure.Verticies {
 			c_coord += p_coord[i]
 		}
-		c_coord /= T(len(p.Structure.Verticies))
+		c_coord /= float64(len(p.Structure.Verticies))
 	}
 	return center
 }
 
-func (p Polytope[T]) ComprisingsOf(facet_index, dimension int) []int {
+func (p Polytope) ComprisingsOf(facet_index, dimension int) []int {
 	facets := []int{facet_index}
-	for dim := len(p.Structure.RestElements); dim >= dimension; dim-- {
-		ridges := make([]bool, len(p.Structure.RestElements[dim]))
+	for dim := len(p.Structure.RestElements) - 1; dim >= dimension; dim-- {
+		ridges := make([]bool, len(p.Structure.RestElements[dim-1]))
 		for _, facet := range facets {
 			for _, i := range p.Structure.RestElements[dim][facet] {
 				ridges[int(i)] = true
@@ -84,13 +84,13 @@ func (p Polytope[T]) ComprisingsOf(facet_index, dimension int) []int {
 	return facets
 }
 
-func (p *Polytope[T]) UpdateFaceColors() {
+func (p *Polytope) UpdateFaceColors() {
 	p.FaceColors = make([]color.NRGBA, len(p.Structure.RestElements[0]))
 	var faces []int
 	var faceColor color.NRGBA
 
 	for facet_index := range p.Structure.RestElements[len(p.Structure.RestElements)-1] {
-		faces = p.ComprisingsOf(facet_index, 2)
+		faces = p.ComprisingsOf(facet_index, 1)
 		faceColor = p.Colors[facet_index]
 		for _, i := range faces {
 			p.FaceColors[i] = combineColors(p.FaceColors[i], faceColor)
@@ -114,7 +114,7 @@ func combineColors(c1, c2 color.NRGBA) color.NRGBA {
 	return newColor
 }
 
-func (p Polytope[float64]) Draw(world World) {
+func (p Polytope) Draw(world World) {
 
 	var face [][]float64
 	for face_index, struct_face := range p.Structure.RestElements[0] {
@@ -138,18 +138,18 @@ func spilttedText(scanner *bufio.Scanner) []string {
 	return strings.Split(strings.TrimSpace(scanner.Text()), " ")
 }
 
-func FromStructure[T Number](structure Structure[T]) Polytope[T] {
-	return Polytope[T]{
+func FromStructure(structure Structure) Polytope {
+	return Polytope{
 		Structure:  structure,
 		Colors:     make([]color.NRGBA, len(structure.RestElements[len(structure.RestElements)-1])),
 		FaceColors: make([]color.NRGBA, len(structure.RestElements[len(structure.RestElements)-1])),
 	}
 }
 
-func ImportOFF[T Number](path string) (Polytope[T], error) {
+func ImportOFF(path string) (Polytope, error) {
 	file, err := os.Open(path)
 	if err != nil {
-		return Polytope[T]{}, err
+		return Polytope{}, err
 	}
 	defer file.Close()
 
@@ -163,25 +163,26 @@ func ImportOFF[T Number](path string) (Polytope[T], error) {
 	for i, v := range countsStr {
 		counts[i], err = strconv.Atoi(v)
 		if err != nil {
-			return Polytope[T]{}, err
+			return Polytope{}, err
 		}
 	}
 	counts = slices.Delete(counts, 2, 3)
 
-	structure := Structure[T]{}
+	structure := Structure{}
+	structure.RestElements = make([][][]int, len(counts)-1)
 	colors := make([]color.NRGBA, counts[len(counts)-1])
 
 	for i := 0; i < counts[0]; i++ {
 		scan(scanner)
 		point := spilttedText(scanner)
 
-		vertex := make(Point[T], len(point))
+		vertex := make(Point, len(point))
 		for c_index, coord := range point {
 			c, err := strconv.ParseFloat(coord, 64)
 			if err != nil {
-				return Polytope[T]{}, err
+				return Polytope{}, err
 			}
-			vertex[c_index] = T(c)
+			vertex[c_index] = c
 		}
 		structure.Verticies = append(structure.Verticies, vertex)
 	}
@@ -194,14 +195,14 @@ func ImportOFF[T Number](path string) (Polytope[T], error) {
 
 			l, err := strconv.Atoi(point[0])
 			if err != nil {
-				return Polytope[T]{}, err
+				return Polytope{}, err
 			}
 
 			element := make([]int, l)
 			for c_index, coord := range point[1 : l+1] {
 				c, err := strconv.ParseInt(coord, 10, 64)
 				if err != nil {
-					return Polytope[T]{}, err
+					return Polytope{}, err
 				}
 				element[c_index] = int(c)
 			}
@@ -215,7 +216,7 @@ func ImportOFF[T Number](path string) (Polytope[T], error) {
 			for col_i, col_c := range point[l+1:] {
 				col_ci, err := strconv.ParseUint(col_c, 10, 0)
 				if err != nil {
-					return Polytope[T]{}, err
+					return Polytope{}, err
 				}
 
 				col[col_i] = uint8(col_ci)
@@ -232,12 +233,12 @@ func ImportOFF[T Number](path string) (Polytope[T], error) {
 			colors[i] = color.NRGBA{col[0], col[1], col[2], alpha}
 		}
 	}
-	p := Polytope[T]{Structure: structure, Colors: colors}
+	p := Polytope{Structure: structure, Colors: colors}
 	p.UpdateFaceColors()
 	return p, nil
 }
 
-func (p Polytope[T]) ExportOFF(path string) {
+func (p Polytope) ExportOFF(path string) {
 	dim := len(p.Structure.Verticies[0])
 	counts := GetCounts(p.Structure)
 	counts = slices.Insert(counts, 2, len(GetEdges(p)))

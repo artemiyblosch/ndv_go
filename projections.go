@@ -5,12 +5,12 @@ import (
 	"slices"
 )
 
-func Ortho[T Number](point Point[T]) Point[T] {
+func Ortho(point Point) Point {
 	return point[:len(point)-1]
 }
 
-func Iso[T Number](direction Point[T]) Projection[T] {
-	return func(point Point[T]) Point[T] {
+func Iso(direction Point) Projection {
+	return func(point Point) Point {
 		coordinate := point[len(point)-1]
 		point = point[:len(point)-1]
 
@@ -21,8 +21,8 @@ func Iso[T Number](direction Point[T]) Projection[T] {
 	}
 }
 
-func TranslateFunc[T Number](direction Point[T]) Projection[T] {
-	return func(point Point[T]) Point[T] {
+func TranslateFunc(direction Point) Projection {
+	return func(point Point) Point {
 		for i := range point {
 			point[i] += direction[i]
 		}
@@ -30,8 +30,8 @@ func TranslateFunc[T Number](direction Point[T]) Projection[T] {
 	}
 }
 
-func ScaleFunc[T Number](scale T) Projection[T] {
-	return func(point Point[T]) Point[T] {
+func ScaleFunc(scale float64) Projection {
+	return func(point Point) Point {
 		for i := range point {
 			point[i] *= scale
 		}
@@ -39,8 +39,8 @@ func ScaleFunc[T Number](scale T) Projection[T] {
 	}
 }
 
-func Upcast[T Number](dim int) Projection[T] {
-	return func(point Point[T]) Point[T] {
+func Upcast(dim int) Projection {
+	return func(point Point) Point {
 		diff := dim - len(point)
 		if diff <= 0 {
 			return point
@@ -49,8 +49,8 @@ func Upcast[T Number](dim int) Projection[T] {
 	}
 }
 
-func Safe[T Number](projection Projection[T]) Projection[T] {
-	return func(point Point[T]) Point[T] {
+func Safe(projection Projection) Projection {
+	return func(point Point) Point {
 		if len(point) < 3 {
 			return point
 		}
@@ -58,14 +58,14 @@ func Safe[T Number](projection Projection[T]) Projection[T] {
 	}
 }
 
-func Central[T Number](center Point[T]) Projection[T] {
-	return func(point Point[T]) Point[T] {
+func Central(center Point) Projection {
+	return func(point Point) Point {
 		point_height := point[len(point)-1]
 		center_height := center[len(center)-1]
 
 		if point_height == center_height {
 			for i := range point {
-				point[i] = T(math.Copysign(math.Inf(1), float64(point[i])))
+				point[i] = math.Copysign(math.Inf(1), float64(point[i]))
 			}
 			return point
 		}
@@ -73,7 +73,7 @@ func Central[T Number](center Point[T]) Projection[T] {
 		point = point[:len(point)-1]
 		if len(point) >= len(center) {
 			center = append(
-				make(Point[T], len(point)-len(center)+1),
+				make(Point, len(point)-len(center)+1),
 				center...,
 			)
 		}
@@ -85,9 +85,9 @@ func Central[T Number](center Point[T]) Projection[T] {
 	}
 }
 
-func RotateFunc[T Number](plane [2]int, angle float64, around Point[T]) Projection[T] {
-	return func(point Point[T]) Point[T] {
-		cos, sin := T(math.Cos(angle)), T(math.Sin(angle))
+func RotateFunc(plane [2]int, angle float64, around Point) Projection {
+	return func(point Point) Point {
+		cos, sin := math.Cos(angle), math.Sin(angle)
 		x, y := plane[0], plane[1]
 
 		for i, v := range around {

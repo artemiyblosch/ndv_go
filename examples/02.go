@@ -15,7 +15,7 @@ func e_02() {
 	w := a.NewWindow("Preivew")
 
 	world := ndv.NewWorld(
-		[]ndv.Projection[float64]{
+		[]ndv.Projection{
 			ndv.Central([]float64{1.}),
 		},
 		color.NRGBA{255, 255, 255, 255},
@@ -23,7 +23,7 @@ func e_02() {
 		[2]int{500, 500},
 	)
 
-	p, err := ndv.ImportOFF[float64]("./examples/Cube.off")
+	p, err := ndv.ImportOFF("./examples/Cube.off")
 	if err != nil {
 		fmt.Println(err)
 		return

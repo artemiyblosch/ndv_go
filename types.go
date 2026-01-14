@@ -2,9 +2,9 @@ package ndv
 
 import "golang.org/x/exp/constraints"
 
-type Point[T interface{}] = []T
+type Point = []float64
 
-type Projection[T interface{}] = func(Point[T]) Point[T]
+type Projection = func(Point) Point
 
 type Number interface {
 	constraints.Float | constraints.Integer

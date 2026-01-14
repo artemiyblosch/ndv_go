@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	p, err := ndv.ImportOFF[float64]("./examples/Cube.off")
+	p, err := ndv.ImportOFF("./examples/Cube.off")
 	if err != nil {
 		fmt.Println(err)
 		return

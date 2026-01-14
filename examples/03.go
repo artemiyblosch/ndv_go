@@ -11,12 +11,12 @@ import (
 	"fyne.io/fyne/v2/canvas"
 )
 
-func e_03() {
+func main() {
 	a := app.New()
 	w := a.NewWindow("Preivew")
 
 	world := ndv.NewWorld(
-		[]ndv.Projection[float64]{
+		[]ndv.Projection{
 			ndv.Central([]float64{3.}),
 			ndv.Central([]float64{3.}),
 		},
@@ -25,7 +25,7 @@ func e_03() {
 		[2]int{500, 500},
 	)
 
-	p, err := ndv.ImportOFF[float64]("./examples/It.off")
+	p, err := ndv.ImportOFF("./examples/Cp.off")
 	if err != nil {
 		fmt.Println(err)
 		return

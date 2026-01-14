@@ -8,12 +8,12 @@ import (
 )
 
 func e00() {
-	structure := ndv.Structure[float64]{
+	structure := ndv.Structure{
 		Verticies:    [][]float64{{0., 0.}, {0., 1.}, {1., 0.}, {1., 1.}},
 		RestElements: [][][]int{{{0, 1, 2, 3}}},
 	}
 
-	p := ndv.Polytope[float64]{
+	p := ndv.Polytope{
 		Structure: structure,
 		Colors:    []color.NRGBA{{0, 0, 0, 255}},
 	}

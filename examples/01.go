@@ -14,7 +14,7 @@ func e_01() {
 	w := a.NewWindow("Preivew")
 
 	world := ndv.NewWorld(
-		[]ndv.Projection[float64]{ndv.Iso([]float64{1., 1.})},
+		[]ndv.Projection{ndv.Iso([]float64{1., 1.})},
 		color.NRGBA{255, 255, 255, 255},
 		[2][2]float64{{-5, 5}, {-5, 5}},
 		[2]int{500, 500},

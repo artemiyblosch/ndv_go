@@ -5,8 +5,8 @@ import (
 	"math"
 )
 
-func GetEdges[T Number](p Polytope[T]) [][]int {
-	edges := Structure[T]{}
+func GetEdges(p Polytope) [][]int {
+	edges := Structure{}
 	for _, face := range p.Structure.RestElements[0] {
 		for j := range face[:len(face)-1] {
 			addEdge(edges, face, j, j+1)
@@ -16,7 +16,7 @@ func GetEdges[T Number](p Polytope[T]) [][]int {
 	return edges.RestElements[0]
 }
 
-func AddMaximal[T Number](p Structure[T]) Structure[T] {
+func AddMaximal(p Structure) Structure {
 	maximal := make([]int, len(p.RestElements[len(p.RestElements)-1]))
 	for i := range p.RestElements[len(p.RestElements)-1] {
 		maximal[i] = i
@@ -25,8 +25,8 @@ func AddMaximal[T Number](p Structure[T]) Structure[T] {
 	return p
 }
 
-func Polygon(sides_num int, sides_denom int) Polytope[float64] {
-	structure := Structure[float64]{}
+func Polygon(sides_num int, sides_denom int) Polytope {
+	structure := Structure{}
 	structure.Verticies = make([][]float64, sides_num)
 	structure.RestElements[0] = make([][]int, sides_denom)
 
@@ -56,7 +56,7 @@ func Polygon(sides_num int, sides_denom int) Polytope[float64] {
 	return FromStructure(structure)
 }
 
-func Pyramidify[T Number](structure Structure[T], point Point[T]) Structure[T] {
+func Pyramidify(structure Structure, point Point) Structure {
 	if len(structure.RestElements[len(structure.RestElements)-1]) > 1 {
 		structure = AddMaximal(structure)
 	}
@@ -82,7 +82,7 @@ func Pyramidify[T Number](structure Structure[T], point Point[T]) Structure[T] {
 				facet = append(facet, d[int(peak)])
 			}
 			nd[index] = len(structure.RestElements[dim+1])
-			structure.RestElements[dim+1] = append(structure.RestElements[dim+1], facet)
+			structure.RestElements[dim+2] = append(structure.RestElements[dim+2], facet)
 		}
 		d = maps.Clone(nd)
 	}
@@ -90,7 +90,7 @@ func Pyramidify[T Number](structure Structure[T], point Point[T]) Structure[T] {
 	return structure
 }
 
-func GetCounts[T Number](structure Structure[T]) []int {
+func GetCounts(structure Structure) []int {
 	result := make([]int, len(structure.RestElements)+1)
 	result[0] = len(structure.Verticies)
 	for i, v := range structure.RestElements {
@@ -99,7 +99,7 @@ func GetCounts[T Number](structure Structure[T]) []int {
 	return result
 }
 
-func addEdge[T Number](result Structure[T], face []int, begin, end int) int {
+func addEdge(result Structure, face []int, begin, end int) int {
 	if face[end] > face[begin] {
 		begin, end = end, begin
 	}

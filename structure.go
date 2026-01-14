@@ -1,16 +1,17 @@
 package ndv
 
-import "slices"
+import (
+	"fmt"
+	"slices"
+)
 
-type Structure[T Number] struct {
-	Verticies    []Point[T]
+type Structure struct {
+	Verticies    []Point
 	RestElements [][][]int
 }
 
-func CanonizedStruct[T Number](p Polytope[T]) Structure[T] {
-	result := Structure[T]{}
-	copy(result.Verticies, p.Structure.Verticies)
-	copy(result.RestElements, p.Structure.RestElements)
+func CanonizedStruct(p Polytope) Structure {
+	result := p.Structure
 	result.RestElements = slices.Insert(result.RestElements, 0, [][]int{})
 
 	tmpFace := []int{}
@@ -29,10 +30,9 @@ func CanonizedStruct[T Number](p Polytope[T]) Structure[T] {
 	return result
 }
 
-func NormalizedStruct[T Number](structure Structure[T]) Structure[T] {
-	result := Structure[T]{}
-	copy(result.Verticies, structure.Verticies)
-	copy(result.RestElements, structure.RestElements)
+func NormalizedStruct(structure Structure) Structure {
+	result := structure
+
 	if len(result.RestElements) == 1 {
 		result = AddMaximal(result)
 	}
@@ -48,8 +48,9 @@ func NormalizedStruct[T Number](structure Structure[T]) Structure[T] {
 	return result
 }
 
-func recoverFace[T Number](face Point[T], edges [][]int) []int {
+func recoverFace(face []int, edges [][]int) []int {
 	result := []int{}
+	fmt.Println(edges)
 
 	faceGraph := make(map[int][]int)
 	for _, edge_index := range face {
@@ -58,7 +59,7 @@ func recoverFace[T Number](face Point[T], edges [][]int) []int {
 		faceGraph[end] = append(faceGraph[end], begin)
 	}
 
-	curVertex := edges[int(face[0])][0]
+	curVertex := edges[face[0]][0]
 	been := []int{}
 	found := true
 
