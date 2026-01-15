@@ -10,17 +10,27 @@ type Structure struct {
 	RestElements [][][]int
 }
 
+func (s Structure) String() string {
+	result := fmt.Sprintf("Verticies:\n%v\n\n\nRest:\n", s.Verticies)
+
+	for _, i := range s.RestElements {
+		result += fmt.Sprintf("%v\n\n", i)
+	}
+	return result
+}
+
 func CanonizedStruct(p Polytope) Structure {
 	result := p.Structure
 	result.RestElements = slices.Insert(result.RestElements, 0, [][]int{})
 
 	tmpFace := []int{}
+
 	for i, face := range result.RestElements[1] {
 		tmpFace = []int{}
 		for j := range face[:len(face)-1] {
-			tmpFace = append(tmpFace, addEdge(result, face, j, j+1))
+			tmpFace = append(tmpFace, addEdge(&result.RestElements[0], face[j], face[j+1]))
 		}
-		tmpFace = append(tmpFace, addEdge(result, face, 0, len(face)-1))
+		tmpFace = append(tmpFace, addEdge(&result.RestElements[0], face[0], face[len(face)-1]))
 		result.RestElements[1][i] = tmpFace
 	}
 
@@ -30,54 +40,27 @@ func CanonizedStruct(p Polytope) Structure {
 	return result
 }
 
-func NormalizedStruct(structure Structure) Structure {
-	result := structure
-
-	if len(result.RestElements) == 1 {
-		result = AddMaximal(result)
+func NormalizedStruct(s Structure) Structure {
+	faces := make([][]int, len(s.RestElements[1]))
+	edgeGraph := ConstructEdgeGraph(s.RestElements[0])
+	for i, face := range s.RestElements[1] {
+		faces[i] = recoverFace(face, edgeGraph)
 	}
-
-	tmpFace := []int{}
-	for i, face := range result.RestElements[1] {
-		tmpFace = recoverFace(face, result.RestElements[1])
-		result.RestElements[1][i] = tmpFace
-	}
-
-	result.RestElements = slices.Delete(result.RestElements, 0, 1)
-
-	return result
+	s.RestElements[1] = faces
+	s.RestElements = slices.Delete(s.RestElements, 0, 1)
+	return s
 }
 
-func recoverFace(face []int, edges [][]int) []int {
-	result := []int{}
-	fmt.Println(edges)
+func recoverFace(face []int, edgeGraph map[int][]int) []int {
+	//been :=
+	return []int{}
+}
 
-	faceGraph := make(map[int][]int)
-	for _, edge_index := range face {
-		begin, end := edges[int(edge_index)][0], edges[int(edge_index)][1]
-		faceGraph[begin] = append(faceGraph[begin], end)
-		faceGraph[end] = append(faceGraph[end], begin)
+func ConstructEdgeGraph(edges [][]int) map[int][]int {
+	result := make(map[int][]int)
+	for _, i := range edges {
+		result[i[0]] = append(result[i[0]], i[1])
+		result[i[1]] = append(result[i[1]], i[0])
 	}
-
-	curVertex := edges[face[0]][0]
-	been := []int{}
-	found := true
-
-	for found {
-		been = append(been, curVertex)
-		result = append(result, curVertex)
-		found = false
-		for _, vertexAdj := range faceGraph[curVertex] {
-			for _, beenVertex := range been {
-				if beenVertex == vertexAdj {
-					goto Been
-				}
-			}
-			curVertex = vertexAdj
-			found = true
-		Been:
-		}
-	}
-
 	return result
 }

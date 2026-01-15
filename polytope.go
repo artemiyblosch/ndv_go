@@ -24,7 +24,7 @@ func (p Polytope) String() string {
 	}
 
 	for i, v := range p.Structure.RestElements {
-		representation += fmt.Sprintf("%v:\n%v\n\n", i, v)
+		representation += fmt.Sprintf("\n%v:\n%v\n", i, v)
 	}
 
 	return representation

@@ -6,14 +6,7 @@ import (
 )
 
 func GetEdges(p Polytope) [][]int {
-	edges := Structure{}
-	for _, face := range p.Structure.RestElements[0] {
-		for j := range face[:len(face)-1] {
-			addEdge(edges, face, j, j+1)
-		}
-		addEdge(edges, face, 0, len(face)-1)
-	}
-	return edges.RestElements[0]
+	return [][]int{}
 }
 
 func AddMaximal(p Structure) Structure {
@@ -56,57 +49,52 @@ func Polygon(sides_num int, sides_denom int) Polytope {
 	return FromStructure(structure)
 }
 
-func Pyramidify(structure Structure, point Point) Structure {
-	if len(structure.RestElements[len(structure.RestElements)-1]) > 1 {
-		structure = AddMaximal(structure)
-	}
-	counts := GetCounts(structure)
-	structure.Verticies = append(structure.Verticies, point)
-
-	var d, nd map[int]int
-	d = make(map[int]int)
-
-	for vIndex := 0; vIndex < counts[0]; vIndex++ {
-		d[vIndex] = len(structure.RestElements[0])
-		structure.RestElements[0] = append(structure.RestElements[0], []int{vIndex, counts[0]})
+func (s Structure) Pyramidify(point Point) Structure {
+	counts := GetCounts(s)
+	s.Verticies = append(s.Verticies, point)
+	if len(s.RestElements[len(s.RestElements)-1]) != 1 {
+		s = AddMaximal(s)
 	}
 
-	var facet, ridge []int
-	for dim := 0; dim < len(counts)-2; dim++ {
-		nd = make(map[int]int)
-		for index := 0; index < counts[dim]; index++ {
-			ridge = structure.RestElements[dim][index]
-			facet = []int{index}
+	d := make(map[int]int)
+	for i := range counts[0] {
+		s.RestElements[0] = append(s.RestElements[0], []int{i, counts[0]})
+		d[i] = len(s.RestElements[0])
+	}
 
-			for _, peak := range ridge {
-				facet = append(facet, d[int(peak)])
+	for dim := 1; dim < len(counts); dim++ {
+		nd := make(map[int]int)
+		for element := 0; element < counts[dim-1]; element++ {
+			tmpNext := []int{element}
+			for ridge := range s.RestElements[dim-1][element] {
+				tmpNext = append(tmpNext, d[ridge])
 			}
-			nd[index] = len(structure.RestElements[dim+1])
-			structure.RestElements[dim+2] = append(structure.RestElements[dim+2], facet)
+			s.RestElements[dim] = append(s.RestElements[dim], tmpNext)
+			nd[element] = len(s.RestElements[dim])
 		}
 		d = maps.Clone(nd)
 	}
 
-	return structure
+	return s
 }
 
 func GetCounts(structure Structure) []int {
 	result := make([]int, len(structure.RestElements)+1)
 	result[0] = len(structure.Verticies)
 	for i, v := range structure.RestElements {
-		result[i] = len(v)
+		result[i+1] = len(v)
 	}
 	return result
 }
 
-func addEdge(result Structure, face []int, begin, end int) int {
-	if face[end] > face[begin] {
+func addEdge(edges *[][]int, begin, end int) int {
+	if begin > end {
 		begin, end = end, begin
 	}
-	I := index(result.RestElements[1], []int{face[begin], face[end]})
+	I := index(*edges, []int{begin, end})
 	if I == -1 {
-		result.RestElements[0] = append(result.RestElements[0], []int{face[begin], face[end]})
-		return len(result.RestElements[0]) - 1
+		*edges = append(*edges, []int{begin, end})
+		return len(*edges) - 1
 	}
 	return I
 }
