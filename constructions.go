@@ -50,6 +50,7 @@ func Polygon(sides_num int, sides_denom int) Polytope {
 }
 
 func (s Structure) Pyramidify(point Point) Structure {
+	s = s.Upcast(len(point))
 	counts := GetCounts(s)
 	s.Verticies = append(s.Verticies, point)
 	if len(s.RestElements[len(s.RestElements)-1]) != 1 {
@@ -57,20 +58,19 @@ func (s Structure) Pyramidify(point Point) Structure {
 	}
 
 	d := make(map[int]int)
-	for i := range counts[0] {
-		s.RestElements[0] = append(s.RestElements[0], []int{i, counts[0]})
+	for i := 0; i < counts[0]; i++ {
 		d[i] = len(s.RestElements[0])
+		s.RestElements[0] = append(s.RestElements[0], []int{i, counts[0]})
 	}
-
 	for dim := 1; dim < len(counts); dim++ {
 		nd := make(map[int]int)
-		for element := 0; element < counts[dim-1]; element++ {
+		for element := 0; element < counts[dim]; element++ {
 			tmpNext := []int{element}
-			for ridge := range s.RestElements[dim-1][element] {
+			for _, ridge := range s.RestElements[dim-1][element] {
 				tmpNext = append(tmpNext, d[ridge])
 			}
-			s.RestElements[dim] = append(s.RestElements[dim], tmpNext)
 			nd[element] = len(s.RestElements[dim])
+			s.RestElements[dim] = append(s.RestElements[dim], tmpNext)
 		}
 		d = maps.Clone(nd)
 	}

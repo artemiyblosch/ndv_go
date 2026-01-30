@@ -40,20 +40,60 @@ func CanonizedStruct(p Polytope) Structure {
 	return result
 }
 
+func (p Structure) Rotate(plane [2]int, angle float64, around Point) Structure {
+	return p.VertexMap(RotateFunc(plane, angle, around))
+}
+
+func (p Structure) Translate(direction Point) Structure {
+	return p.VertexMap(TranslateFunc(direction))
+}
+
+func (p Structure) Scale(scale float64) Structure {
+	return p.VertexMap(ScaleFunc(scale))
+}
+func (p Structure) Upcast(dim int) Structure {
+	return p.VertexMap(Upcast(dim))
+}
+
+func (p Structure) VertexMap(f Projection) Structure {
+	for i, v := range p.Verticies {
+		p.Verticies[i] = f(v)
+	}
+	return p
+}
 func NormalizedStruct(s Structure) Structure {
 	faces := make([][]int, len(s.RestElements[1]))
-	edgeGraph := ConstructEdgeGraph(s.RestElements[0])
+
 	for i, face := range s.RestElements[1] {
-		faces[i] = recoverFace(face, edgeGraph)
+		faces[i] = recoverFace(face, s.RestElements[0])
 	}
+
 	s.RestElements[1] = faces
 	s.RestElements = slices.Delete(s.RestElements, 0, 1)
 	return s
 }
 
-func recoverFace(face []int, edgeGraph map[int][]int) []int {
-	//been :=
-	return []int{}
+func recoverFace(face []int, edges [][]int) []int {
+	face_edges := make([][]int, len(face))
+	for i := range face {
+		face_edges[i] = edges[face[i]]
+	}
+
+	been := []int{face_edges[0][0]}
+	edge_graph := ConstructEdgeGraph(face_edges)
+	done := false
+	for !done {
+		done = true
+		for _, neighbour := range edge_graph[been[len(been)-1]] {
+			if slices.Contains(been, neighbour) {
+				continue
+			}
+			been = append(been, neighbour)
+			done = false
+			break
+		}
+	}
+	return been
 }
 
 func ConstructEdgeGraph(edges [][]int) map[int][]int {
