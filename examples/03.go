@@ -19,14 +19,15 @@ func main() {
 		[]ndv.Projection{
 			ndv.Central([]float64{3.}),
 			ndv.Central([]float64{3.}),
-			ndv.Central([]float64{3.}),
 		},
 		color.NRGBA{255, 255, 255, 255},
-		[2][2]float64{{-2, 2}, {-2, 2}},
+		[2][2]float64{{-1.5, 1.5}, {-1.5, 1.5}},
 		[2]int{500, 500},
 	)
 
-	p, err := ndv.ImportOFF("./examples/Cp.off")
+	p, err := ndv.ImportOFF("./examples/Ts.off")
+	p = p.Centrate()
+	fmt.Println(p)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -39,9 +40,8 @@ func main() {
 		t := time.NewTicker(time.Duration(1000/framerate) * time.Millisecond)
 		defer t.Stop()
 		for range t.C {
-			p.Rotate([2]int{1, 4}, 0.05, []float64{0., 0., 0., 0.})
+			p.Rotate([2]int{1, 2}, 0.05, []float64{0., 0., 0., 0.})
 			p.Rotate([2]int{0, 3}, 0.05, []float64{0., 0., 0., 0.})
-			p.Rotate([2]int{2, 3}, 0.05, []float64{0., 0., 0., 0.})
 			world.Clear()
 			p.Draw(world)
 

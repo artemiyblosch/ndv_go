@@ -3,6 +3,7 @@ package ndv
 import (
 	"maps"
 	"math"
+	"slices"
 )
 
 func GetEdges(p Polytope) [][]int {
@@ -66,6 +67,56 @@ func (s Structure) Pyramidify(point Point) Structure {
 		nd := make(map[int]int)
 		for element := 0; element < counts[dim]; element++ {
 			tmpNext := []int{element}
+			for _, ridge := range s.RestElements[dim-1][element] {
+				tmpNext = append(tmpNext, d[ridge])
+			}
+			nd[element] = len(s.RestElements[dim])
+			s.RestElements[dim] = append(s.RestElements[dim], tmpNext)
+		}
+		d = maps.Clone(nd)
+	}
+
+	return s
+}
+
+func shift(facet []int, shift int) []int {
+	f := slices.Clone(facet)
+	for i := range facet {
+		f[i] = f[i] + shift
+	}
+	return f
+}
+
+func (s Structure) Prismify(direction Point) Structure {
+	s = s.Upcast(len(direction))
+	counts := GetCounts(s)
+
+	for i := range s.Verticies {
+		s.Verticies = append(s.Verticies, TranslateFunc(direction)(slices.Clone(s.Verticies[i])))
+	}
+
+	if len(s.RestElements[len(s.RestElements)-1]) != 1 {
+		s = AddMaximal(s)
+	}
+
+	for i := range s.RestElements[0] {
+		s.RestElements[0] = append(s.RestElements[0], shift(s.RestElements[0][i], counts[0]))
+	}
+
+	for dim := 1; dim < len(counts); dim++ {
+		for i := range s.RestElements[dim] {
+			s.RestElements[dim] = append(s.RestElements[dim], shift(s.RestElements[dim][i], counts[dim]))
+		}
+	}
+	d := make(map[int]int)
+	for i := 0; i < counts[0]; i++ {
+		d[i] = len(s.RestElements[0])
+		s.RestElements[0] = append(s.RestElements[0], []int{i, counts[0] + i})
+	}
+	for dim := 1; dim < len(counts); dim++ {
+		nd := make(map[int]int)
+		for element := 0; element < counts[dim]; element++ {
+			tmpNext := []int{element, counts[dim] + element}
 			for _, ridge := range s.RestElements[dim-1][element] {
 				tmpNext = append(tmpNext, d[ridge])
 			}

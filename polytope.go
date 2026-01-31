@@ -45,6 +45,11 @@ func (p Polytope) Upcast(dim int) Polytope {
 	return p.VertexMap(Upcast(dim))
 }
 
+func (p Polytope) Centrate() Polytope {
+	fmt.Print(p.Center())
+	return p.Translate(ScaleFunc(-1)(p.Center()))
+}
+
 func (p Polytope) VertexMap(f Projection) Polytope {
 	for i, v := range p.Structure.Verticies {
 		p.Structure.Verticies[i] = f(v)
@@ -59,6 +64,7 @@ func (p Polytope) Center() Point {
 			c_coord += p_coord[i]
 		}
 		c_coord /= float64(len(p.Structure.Verticies))
+		center[i] = c_coord
 	}
 	return center
 }
