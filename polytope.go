@@ -46,7 +46,6 @@ func (p Polytope) Upcast(dim int) Polytope {
 }
 
 func (p Polytope) Centrate() Polytope {
-	fmt.Print(p.Center())
 	return p.Translate(ScaleFunc(-1)(p.Center()))
 }
 

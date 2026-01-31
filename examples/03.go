@@ -27,7 +27,6 @@ func main() {
 
 	p, err := ndv.ImportOFF("./examples/Ts.off")
 	p = p.Centrate()
-	fmt.Println(p)
 	if err != nil {
 		fmt.Println(err)
 		return
