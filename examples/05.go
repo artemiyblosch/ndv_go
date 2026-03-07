@@ -5,16 +5,19 @@ import (
 	"ndv"
 )
 
-func main() {
-	p, err := ndv.ImportOFF("./examples/Cube.off")
+func e05() {
+	p, err := ndv.ImportOFF("./examples/C10.off")
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 	p_struct := ndv.CanonizedStruct(p)
-	p_struct = p_struct.Prismify([]float64{0., 0., 0., 1})
-
+	for i := 10; i < 11; i++ {
+		d := make([]float64, 11)
+		d[i] = 1
+		p_struct = p_struct.Prismify(d)
+	}
 	p = ndv.FromStructure(ndv.NormalizedStruct(p_struct))
 	//fmt.Println(p)
-	p.ExportOFF("./examples/Ts.off")
+	p.ExportOFF("./examples/C11.off")
 }

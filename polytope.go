@@ -98,7 +98,7 @@ func (p *Polytope) UpdateFaceColors() {
 		faces = p.ComprisingsOf(facet_index, 1)
 		faceColor = p.Colors[facet_index]
 		for _, i := range faces {
-			p.FaceColors[i] = combineColors(p.FaceColors[i], faceColor)
+			p.FaceColors[i] = color.NRGBA(blendRGBA(color.RGBA(p.FaceColors[i]), color.RGBA(faceColor)))
 		}
 	}
 }
@@ -119,7 +119,7 @@ func combineColors(c1, c2 color.NRGBA) color.NRGBA {
 	return newColor
 }
 
-func (p Polytope) Draw(world World) {
+func (p Polytope) Draw(world World, sync bool) {
 
 	var face [][]float64
 	for face_index, struct_face := range p.Structure.RestElements[0] {
@@ -128,7 +128,11 @@ func (p Polytope) Draw(world World) {
 			face = append(face, p.Structure.Verticies[int(p_index)])
 		}
 
-		world.DrawFace(face, p.FaceColors[face_index])
+		if sync {
+			world.DrawFace(face, p.FaceColors[face_index])
+		} else {
+			go world.DrawFace(face, p.FaceColors[face_index])
+		}
 	}
 }
 
@@ -261,6 +265,7 @@ func (p Polytope) ExportOFF(path string) {
 	for _, elems := range p.Structure.RestElements {
 		file_contents = append(file_contents, '\n')
 		for _, elem := range elems {
+			//fmt.Println(i, ":", j, "/", len(elems))
 			write = fmt.Sprint(elem)
 			write = write[1 : len(write)-1]
 			write = fmt.Sprintln(len(elem), write)
@@ -270,4 +275,28 @@ func (p Polytope) ExportOFF(path string) {
 
 	os.WriteFile(path, file_contents, 0644)
 
+}
+
+func blendRGBA(c0, c1 color.RGBA) color.RGBA {
+	// Convert uint8 to float64 for calculation (alpha is in range [0, 1])
+	a0 := float64(c0.A) / 255.0
+	a1 := float64(c1.A) / 255.0
+
+	// Resulting alpha
+	aOut := a0 + a1*(1-a0)
+	if aOut == 0 {
+		return color.RGBA{A: 0}
+	}
+
+	// Resulting colors
+	rOut := (float64(c0.R)*a0 + float64(c1.R)*a1*(1-a0)) / aOut
+	gOut := (float64(c0.G)*a0 + float64(c1.G)*a1*(1-a0)) / aOut
+	bOut := (float64(c0.B)*a0 + float64(c1.B)*a1*(1-a0)) / aOut
+
+	return color.RGBA{
+		R: uint8(rOut),
+		G: uint8(gOut),
+		B: uint8(bOut),
+		A: uint8(aOut * 255.0),
+	}
 }

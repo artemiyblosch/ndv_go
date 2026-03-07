@@ -30,7 +30,7 @@ func e_02() {
 	}
 
 	w.Resize(fyne.NewSize(500, 500))
-	p.Draw(world)
+	p.Draw(world, true)
 	w.SetContent(canvas.NewImageFromImage(world.Image))
 	w.ShowAndRun()
 }

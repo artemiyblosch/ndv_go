@@ -5,7 +5,7 @@ import (
 	"ndv"
 )
 
-func main() {
+func e04() {
 	p, err := ndv.ImportOFF("./examples/Cube.off")
 	if err != nil {
 		fmt.Println(err)

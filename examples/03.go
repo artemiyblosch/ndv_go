@@ -4,11 +4,8 @@ import (
 	"fmt"
 	"image/color"
 	"ndv"
-	"time"
 
-	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
-	"fyne.io/fyne/v2/canvas"
 )
 
 func main() {
@@ -21,32 +18,23 @@ func main() {
 			ndv.Central([]float64{3.}),
 		},
 		color.NRGBA{255, 255, 255, 255},
-		[2][2]float64{{-1.5, 1.5}, {-1.5, 1.5}},
+		[2][2]float64{{-2, 2}, {-2, 2}},
 		[2]int{500, 500},
 	)
 
-	p, err := ndv.ImportOFF("./examples/Ts.off")
-	p = p.Centrate()
+	p, err := ndv.ImportOFF("./examples/It.off")
+	//p = p.Centrate()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	p.UpdateFaceColors()
-	w.Resize(fyne.NewSize(500, 500))
-
-	framerate := 60.
-	go func() {
-		t := time.NewTicker(time.Duration(1000/framerate) * time.Millisecond)
-		defer t.Stop()
-		for range t.C {
-			p.Rotate([2]int{1, 2}, 0.05, []float64{0., 0., 0., 0.})
-			p.Rotate([2]int{0, 3}, 0.05, []float64{0., 0., 0., 0.})
-			world.Clear()
-			p.Draw(world)
-
-			fyne.DoAndWait(func() { w.SetContent(canvas.NewImageFromImage(world.Image)) })
-		}
-	}()
+	preview := ndv.Preview{
+		Window:    w,
+		Polytope:  p,
+		Framerate: 60,
+		World:     world,
+	}
+	preview.Start()
 	//p.Draw(world)
 	//w.SetContent(canvas.NewImageFromImage(world.Image))
 	w.ShowAndRun()

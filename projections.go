@@ -15,6 +15,9 @@ func Iso(direction Point) Projection {
 		point = point[:len(point)-1]
 
 		for i := range point {
+			if i > len(direction)-1 {
+				continue
+			}
 			point[i] += coordinate * direction[i]
 		}
 		return point
