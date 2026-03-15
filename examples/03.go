@@ -8,7 +8,7 @@ import (
 	"fyne.io/fyne/v2/app"
 )
 
-func main() {
+func e03() {
 	a := app.New()
 	w := a.NewWindow("Preivew")
 

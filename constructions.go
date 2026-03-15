@@ -10,6 +10,10 @@ func GetEdges(p Polytope) [][]int {
 	return [][]int{}
 }
 
+func HasMaximal(s Structure) bool {
+	return len(s.RestElements[len(s.RestElements)-1]) == 1
+}
+
 func AddMaximal(p Structure) Structure {
 	maximal := make([]int, len(p.RestElements[len(p.RestElements)-1]))
 	for i := range p.RestElements[len(p.RestElements)-1] {
@@ -20,33 +24,38 @@ func AddMaximal(p Structure) Structure {
 }
 
 func Polygon(sides_num int, sides_denom int) Polytope {
-	structure := Structure{}
-	structure.Verticies = make([][]float64, sides_num)
-	structure.RestElements[0] = make([][]int, sides_denom)
+	structure := Structure{
+		Verticies:    make([][]float64, sides_num),
+		RestElements: [][][]int{{}},
+	}
 
 	angle := 2 * math.Pi / float64(sides_num)
 
 	for i := range structure.Verticies {
 		structure.Verticies[i] = []float64{math.Cos(angle * float64(i)), math.Sin(angle * float64(i))}
 	}
+	start := 0
+	occupied := make([]bool, sides_num)
 
-	var vertex int
-	var face []int
-	for i := 0; i < sides_denom; i++ {
-		face = []int{}
-		vertex = i
+	for start != sides_num {
+		if occupied[start] {
+			start++
+			continue
+		}
+		vertex := start
+		occupied[start] = true
+		face := []int{vertex}
 
-		face = append(face, vertex)
 		vertex += sides_denom
 		vertex %= sides_num
-
-		for vertex != i {
+		for vertex != face[0] {
 			face = append(face, vertex)
+			occupied[vertex] = true
 			vertex += sides_denom
 			vertex %= sides_num
 		}
+		structure.RestElements[0] = append(structure.RestElements[0], face)
 	}
-
 	return FromStructure(structure)
 }
 
@@ -54,7 +63,7 @@ func (s Structure) Pyramidify(point Point) Structure {
 	s = s.Upcast(len(point))
 	counts := GetCounts(s)
 	s.Verticies = append(s.Verticies, point)
-	if len(s.RestElements[len(s.RestElements)-1]) != 1 {
+	if !HasMaximal(s) {
 		s = AddMaximal(s)
 	}
 
@@ -95,7 +104,7 @@ func (s Structure) Prismify(direction Point) Structure {
 		s.Verticies = append(s.Verticies, TranslateFunc(direction)(slices.Clone(s.Verticies[i])))
 	}
 
-	if len(s.RestElements[len(s.RestElements)-1]) != 1 {
+	if !HasMaximal(s) {
 		s = AddMaximal(s)
 	}
 
@@ -170,4 +179,27 @@ func index(elems [][]int, value []int) int {
 		}
 	}
 	return -1
+}
+
+func Product(s1, s2 Structure) Structure {
+	if !HasMaximal(s1) {
+		AddMaximal(s1)
+	}
+
+	if !HasMaximal(s2) {
+		AddMaximal(s2)
+	}
+
+	ns := Structure{
+		Verticies:    []Point{},
+		RestElements: [][][]int{},
+	}
+
+	for _, i := range s1.Verticies {
+		for _, j := range s2.Verticies {
+			ns.Verticies = append(ns.Verticies, append(i, j...))
+		}
+	}
+
+	return ns
 }
