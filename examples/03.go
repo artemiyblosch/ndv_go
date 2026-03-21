@@ -8,7 +8,7 @@ import (
 	"fyne.io/fyne/v2/app"
 )
 
-func e03() {
+func main() {
 	a := app.New()
 	w := a.NewWindow("Preivew")
 
@@ -22,7 +22,7 @@ func e03() {
 		[2]int{500, 500},
 	)
 
-	p, err := ndv.ImportOFF("./examples/It.off")
+	p, err := ndv.ImportOFF("./It.off")
 	//p = p.Centrate()
 	if err != nil {
 		fmt.Println(err)

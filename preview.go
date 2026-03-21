@@ -2,6 +2,7 @@ package ndv
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"time"
 
@@ -22,27 +23,28 @@ func (p Preview) Start() {
 	dim := len(p.Polytope.Structure.Verticies[0])
 	space := []int{0., 1., 2.}
 	entering_space := -1
+	angular_speed := 0.005 * 2 * math.Pi
 
 	if dim == 2 {
 		p.Window.Canvas().SetOnTypedKey(func(key *fyne.KeyEvent) {
 			switch key.Name {
 			case "Up":
-				p.Polytope.Rotate([2]int{space[0], space[1]}, 0.02, []float64{})
+				p.Polytope.Rotate([2]int{space[0], space[1]}, angular_speed, []float64{})
 			case "Down":
-				p.Polytope.Rotate([2]int{space[0], space[1]}, -0.02, []float64{})
+				p.Polytope.Rotate([2]int{space[0], space[1]}, -angular_speed, []float64{})
 			}
 		})
 	} else {
 		p.Window.Canvas().SetOnTypedKey(func(key *fyne.KeyEvent) {
 			switch key.Name {
 			case "Up":
-				p.Polytope.Rotate([2]int{space[1], space[2]}, 0.02, []float64{})
+				p.Polytope.Rotate([2]int{space[1], space[2]}, angular_speed, []float64{})
 			case "Down":
-				p.Polytope.Rotate([2]int{space[1], space[2]}, -0.02, []float64{})
+				p.Polytope.Rotate([2]int{space[1], space[2]}, -angular_speed, []float64{})
 			case "Left":
-				p.Polytope.Rotate([2]int{space[0], space[2]}, 0.02, []float64{})
+				p.Polytope.Rotate([2]int{space[0], space[2]}, angular_speed, []float64{})
 			case "Right":
-				p.Polytope.Rotate([2]int{space[0], space[2]}, -0.02, []float64{})
+				p.Polytope.Rotate([2]int{space[0], space[2]}, -angular_speed, []float64{})
 			case "LeftShift":
 				entering_space = 0
 			case "0", "1", "2", "3", "4", "5", "6", "7", "8", "9":
